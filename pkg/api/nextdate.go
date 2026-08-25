@@ -117,7 +117,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 	} else if parts[0] == "m" {
 		// дни месяца, опционально месяцы
-		if len(parts) < 2 {
+		if len(parts) < 2 || len(parts) > 3 {
 			return "", fmt.Errorf("неверный формат: %s", repeat)
 		}
 

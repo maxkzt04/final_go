@@ -10,28 +10,17 @@ import (
 )
 
 // Схема базы данных
-
 const schema = `
-
-CREATE TABLE scheduler (
-
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    date CHAR(8) NOT NULL DEFAULT "",
-
-    title VARCHAR(256) NOT NULL DEFAULT "",
-
-    comment TEXT NOT NULL DEFAULT "",
-
-    repeat VARCHAR(128) NOT NULL DEFAULT ""
-
+CREATE TABLE IF NOT EXISTS scheduler (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	date CHAR(8) NOT NULL DEFAULT "",
+	title VARCHAR(256) NOT NULL DEFAULT "",
+	comment TEXT NOT NULL DEFAULT "",
+	repeat VARCHAR(128) NOT NULL DEFAULT ""
 );
 
-CREATE INDEX idx_scheduler_date ON scheduler (date);
-
+CREATE INDEX IF NOT EXISTS idx_scheduler_date ON scheduler (date);
 `
-
-// Инициализация базы данных
 
 // переменная для хранения соединения с базой данных
 var db *sql.DB
@@ -40,14 +29,16 @@ var db *sql.DB
 func Init() error {
 	// получаем имя файла базы данных из переменной окружения
 	dbFile := "scheduler.db"
-	// если переменная окружения TODO_DBFILE не пустая, устанавливаем имя файла базы данных из переменной окружения
+
+	// если переменная окружения TODO_DBFILE не пустая,
+	// устанавливаем имя файла базы данных из переменной окружения
 	if envFile := os.Getenv("TODO_DBFILE"); envFile != "" {
 		dbFile = envFile
 	}
 
 	log.Println("файл базы:", dbFile)
 
-	// в scratch папки /data нет — создаём, если нужно
+	// создаём каталог для базы данных, если его нет
 	dir := filepath.Dir(dbFile)
 	if dir != "." && dir != "" {
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -55,32 +46,32 @@ func Init() error {
 		}
 	}
 
-	// проверяем, существует ли файл базы данных
-	_, err := os.Stat(dbFile)
-	// если файл не существует, устанавливаем флаг install в true
-	// иначе устанавливаем флаг install в false
-	var install bool
-	// если файл не существует, устанавливаем флаг install в true
-	if err != nil {
-		install = true
-	}
-
-	// открываем соединение с базой данных
+	// открываем существующую базу данных или создаём новую
+	var err error
 	db, err = sql.Open("sqlite", dbFile)
-	// возвращаем ошибку если не удалось открыть соединение
-
 	if err != nil {
 		return err
 	}
 
-	if install {
-		// выполняем схему базы данных
-		if _, err = db.Exec(schema); err != nil {
-			// возвращаем ошибку если не удалось выполнить схему базы данных
-			return err
-		}
+	// создаём таблицу и индекс, если их ещё нет
+	if _, err = db.Exec(schema); err != nil {
+		_ = db.Close()
+		return err
 	}
 
 	return nil
-	// возвращаем nil если все прошло успешно
+}
+
+// Закрытие базы данных
+func Close() error {
+	if db == nil {
+		return nil
+	}
+
+	return db.Close()
+}
+
+// Получение соединения с базой данных
+func GetDB() *sql.DB {
+	return db
 }
