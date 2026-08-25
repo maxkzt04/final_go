@@ -175,7 +175,32 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			}
 		}
 
+		// проверяем, что правило вообще будет выполнимо
+		// например, m 30 2 или m 31 4 никогда не наступят согласно правилу
+		daysInMonth := []int{0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+		possible := minus1 || minus2
+		for d := 1; d <= 31 && !possible; d++ {
+			if !day[d] {
+				continue
+			}
+			for m := 1; m <= 12; m++ {
+				if month[m] && d <= daysInMonth[m] {
+					possible = true
+					break
+				}
+			}
+		}
+		if !possible {
+			return "", fmt.Errorf("невозможно найти дату для правила: %s", repeat)
+		}
+
+		// счётчик, чтобы цикл не был бесконечным
+		steps := 0
 		for {
+			steps++
+			if steps > 366*5 {
+				return "", fmt.Errorf("не удалось найти следующую дату")
+			}
 			// добавляем 1 день
 			date = date.AddDate(0, 0, 1)
 			// проверяем, что дата больше текущей даты

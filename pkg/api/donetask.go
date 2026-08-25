@@ -8,6 +8,12 @@ import (
 )
 
 func doneTaskHandler(w http.ResponseWriter, r *http.Request) {
+	// выполнение задачи только методом POST
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	// получаем идентификатор задачи
 	id := r.URL.Query().Get("id")
 	// проверяем идентификатор задачи
