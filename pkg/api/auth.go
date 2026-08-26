@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -31,7 +30,8 @@ func createToken(password string) (string, error) {
 func auth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// смотрим наличие пароля
-		pass := os.Getenv("TODO_PASSWORD")
+		//pass := os.Getenv("TODO_PASSWORD")
+		pass := password
 		if len(pass) > 0 {
 			var jwtToken string // JWT-токен из куки
 

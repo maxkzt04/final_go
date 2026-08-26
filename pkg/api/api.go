@@ -1,9 +1,18 @@
 package api
 
-import "net/http"
+import (
+	"net/http"
+	"os"
+)
+
+// переменная для хранения пароля
+var password string
 
 // Инициализация API
 func Init() {
+	// Получаем пароль из переменной окружения
+	password = os.Getenv("TODO_PASSWORD")
+
 	// Вход в планировщик.
 	http.HandleFunc("POST /api/signin", signinHandler)
 

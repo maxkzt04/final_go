@@ -22,14 +22,20 @@ func main() {
 	// Инициализация базы данных
 	if err := db.Init(); err != nil {
 		log.Println("ошибка базы данных:", err)
-		//log.Fatal(err)
 		return
 	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Println("ошибка закрытия базы данных:", err)
+		}
+	}()
 
 	// Запуск сервера
 	if err := server.Run(); err != nil {
 		log.Println("ошибка сервера:", err)
-		// log.Fatal(err)
+		// тут возник вопрос, а нужен ли тут return? ведь main() и так завершится после log.Println,
+		// решил его оставить, return чтобы явно показать что выполнение программы прекращается
+		// по заметки Ревьюера
 		return
 	}
 }

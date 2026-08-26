@@ -12,10 +12,17 @@ import (
 
 // ответ в JSON для API
 func writeJson(w http.ResponseWriter, status int, data any) {
+	resp, err := json.Marshal(data)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"error":"Ошибка формирования ответа"}`))
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(status)
-	resp, _ := json.Marshal(data)
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 // проверка даты задачи

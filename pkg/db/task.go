@@ -54,7 +54,7 @@ func Tasks(limit int, search string) ([]*Task, error) {
 		t, parseErr := time.Parse("02.01.2006", search)
 		if parseErr == nil {
 			// ищем задачи на конкретную дату
-			query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE date = ? LIMIT ?`
+			query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE date = ? ORDER BY date LIMIT ?`
 			rows, err = db.Query(query, t.Format("20060102"), limit)
 		} else {
 			// поиск по заголовку и комментарию
@@ -79,6 +79,10 @@ func Tasks(limit int, search string) ([]*Task, error) {
 			return nil, err
 		}
 		tasks = append(tasks, &task)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return tasks, nil
