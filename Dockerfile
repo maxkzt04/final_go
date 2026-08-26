@@ -22,7 +22,8 @@ ENV TODO_PORT=7540
 ENV TODO_DBFILE=/data/scheduler.db
 # ENV TODO_PASSWORD=12345
 
-EXPOSE 7540
+# Задаем через переменную окружения, чтобы можно было менять при запуске контейнера 
+# EXPOSE 7540
 # база лежит в /data, том подключается при запуске
 VOLUME /data
 

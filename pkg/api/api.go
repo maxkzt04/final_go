@@ -4,39 +4,64 @@ import "net/http"
 
 // Инициализация API
 func Init() {
-	// вход в планировщик
-	http.HandleFunc("/api/signin", signinHandler)
+	// Вход в планировщик.
+	http.HandleFunc("POST /api/signin", signinHandler)
 
-	// обработчик задачи
+	// Обработчик задачи.
+	http.HandleFunc("POST /api/task", auth(addTaskHandler))
+
+	// Обработчик выполнения задачи.
+	http.HandleFunc("GET /api/task", auth(getTaskHandler))
+
+	// Обработчик обновления задачи.
+	http.HandleFunc("PUT /api/task", auth(updateTaskHandler))
+
+	// Обработчик удаления задачи.
+	http.HandleFunc("DELETE /api/task", auth(deleteTaskHandler))
+
+	// Обработчик списка ближайших задач.
 	http.HandleFunc("/api/task", auth(taskHandler))
 
-	// обработчик выполнения задачи
-	http.HandleFunc("/api/task/done", auth(doneTaskHandler))
+	// Обработчик списка ближайших задач.
+	http.HandleFunc("POST /api/task/done", auth(doneTaskHandler))
 
-	// обработчик следующей даты
-	http.HandleFunc("/api/nextdate", nextDateHandler)
+	// Обработчик списка ближайших задач.
+	http.HandleFunc("GET /api/nextdate", nextDateHandler)
 
-	// обработчик списка ближайших задач
-	http.HandleFunc("/api/tasks", auth(tasksHandler))
+	// Обработчик списка ближайших задач.
+	http.HandleFunc("GET /api/tasks", auth(tasksHandler))
 
-	// фронтенд
+	// Фронтенд.
 	http.Handle("/", http.FileServer(http.Dir("./web")))
+
+	// Старый код, который был закомментирован. Он использовал другой способ регистрации обработчиков.
+	// вход в планировщик
+	//	http.HandleFunc("/api/signin", signinHandler)
+	// обработчик задачи
+	//	http.HandleFunc("/api/task", auth(taskHandler))
+	// обработчик выполнения задачи
+	//	http.HandleFunc("/api/task/done", auth(doneTaskHandler))
+	// обработчик следующей даты
+	//	http.HandleFunc("/api/nextdate", nextDateHandler)
+	// обработчик списка ближайших задач
+	//	http.HandleFunc("/api/tasks", auth(tasksHandler))
+	// фронтенд
+	//	http.Handle("/", http.FileServer(http.Dir("./web")))
+
 }
 
-// обработчик задачи
+// обработчик неподдерживаемого метода для /api/task
 func taskHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		// добавление задачи
 		addTaskHandler(w, r)
 	case http.MethodGet:
-		// получение задачи
 		getTaskHandler(w, r)
 	case http.MethodPut:
-		// обновление задачи
 		updateTaskHandler(w, r)
 	case http.MethodDelete:
-		// удаление задачи
 		deleteTaskHandler(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }

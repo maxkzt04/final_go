@@ -12,7 +12,7 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		// возвращаем ошибку если не удалось прочитать тело запроса
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 	// запрос от клиента
@@ -21,14 +21,14 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &req)
 	// возвращаем ошибку если не удалось парсить тело запроса
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 
 	// пароль из переменной окружения
 	pass := os.Getenv("TODO_PASSWORD")
 	if req["password"] != pass || len(pass) == 0 {
-		writeJson(w, map[string]string{"error": "Неверный пароль"})
+		writeJson(w, http.StatusUnauthorized, map[string]string{"error": "Неверный пароль"})
 		return
 	}
 
@@ -36,10 +36,10 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := createToken(pass)
 	if err != nil {
 		// возвращаем ошибку если не удалось создать токен
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 
 	// возвращаем токен
-	writeJson(w, map[string]string{"token": token})
+	writeJson(w, http.StatusOK, map[string]string{"token": token})
 }

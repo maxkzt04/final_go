@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -18,8 +17,9 @@ func createToken(password string) (string, error) {
 	hashStr := fmt.Sprintf("%x", hash)
 	claims["hash"] = hashStr
 
-	exp := time.Now().Add(8 * time.Hour)
-	claims["exp"] = exp.Unix()
+	// устанавливаем срок действия токена на 8 часов
+	//exp := time.Now().Add(8 * time.Hour)
+	//claims["exp"] = exp.Unix()
 
 	tokenString, err := token.SignedString([]byte(password))
 	if err != nil {

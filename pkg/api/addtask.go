@@ -11,8 +11,9 @@ import (
 )
 
 // ответ в JSON для API
-func writeJson(w http.ResponseWriter, data any) {
+func writeJson(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(status)
 	resp, _ := json.Marshal(data)
 	w.Write(resp)
 }
@@ -63,7 +64,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		// возвращаем ошибку если не удалось прочитать тело запроса
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 
@@ -71,13 +72,13 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &task)
 	// возвращаем ошибку если не удалось парсить тело запроса
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 
 	// заголовок обязательный
 	if len(task.Title) == 0 {
-		writeJson(w, map[string]string{"error": "Не указан заголовок задачи"})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": "Не указан заголовок задачи"})
 		return
 	}
 
@@ -85,35 +86,35 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	err = checkDate(&task)
 	if err != nil {
 		// возвращаем ошибку если дата некорректна
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 
 	id, err := db.AddTask(&task)
 	if err != nil {
 		// возвращаем ошибку если не удалось добавить задачу
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 
 	// возвращаем ID задачи
-	writeJson(w, map[string]string{"id": fmt.Sprintf("%d", id)})
+	writeJson(w, http.StatusOK, map[string]string{"id": fmt.Sprintf("%d", id)})
 }
 
 func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
-		writeJson(w, map[string]string{"error": "Не указан идентификатор"})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": "Не указан идентификатор"})
 		return
 	}
 
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeJson(w, map[string]string{"error": "Задача не найдена"})
+		writeJson(w, http.StatusNotFound, map[string]string{"error": "Задача не найдена"})
 		return
 	}
 
-	writeJson(w, task)
+	writeJson(w, http.StatusOK, task)
 }
 
 // обновление задачи
@@ -122,39 +123,39 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// читаем тело запроса
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 	// парсим тело запроса в структуру Task
 	err = json.Unmarshal(body, &task)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 	// проверяем идентификатор задачи
 	if task.ID == "" {
-		writeJson(w, map[string]string{"error": "Не указан идентификатор"})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": "Не указан идентификатор"})
 		return
 	}
 	// проверяем заголовок задачи
 	if len(task.Title) == 0 {
-		writeJson(w, map[string]string{"error": "Не указан заголовок задачи"})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": "Не указан заголовок задачи"})
 		return
 	}
 	// проверяем дату задачи
 	err = checkDate(&task)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 	// обновляем задачу
 	err = db.UpdateTask(&task)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 	// возвращаем успешный ответ
-	writeJson(w, map[string]string{})
+	writeJson(w, http.StatusOK, map[string]string{})
 }
 
 // удаление задачи
@@ -162,15 +163,15 @@ func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// получаем идентификатор задачи
 	id := r.URL.Query().Get("id")
 	if id == "" {
-		writeJson(w, map[string]string{"error": "Не указан идентификатор"})
+		writeJson(w, http.StatusBadRequest, map[string]string{"error": "Не указан идентификатор"})
 		return
 	}
 	// удаляем задачу
 	err := db.DeleteTask(id)
 	if err != nil {
-		writeJson(w, map[string]string{"error": err.Error()})
+		writeJson(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
 	}
 	// возвращаем успешный ответ
-	writeJson(w, map[string]string{})
+	writeJson(w, http.StatusOK, map[string]string{})
 }
