@@ -7,14 +7,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"final.go/pkg/db"
 )
 
 // afterNow возвращает true, если date больше now (без учёта времени)
 func afterNow(date, now time.Time) bool {
 	// форматируем дату в формате YYYYMMDD
-	d1 := date.Format("20060102")
+	d1 := date.Format(db.DateFormat)
 	// форматируем текущую дату в формате YYYYMMDD
-	d2 := now.Format("20060102")
+	d2 := now.Format(db.DateFormat)
 	return d1 > d2
 }
 
@@ -24,7 +26,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		return "", errors.New("не указано правило повторения")
 	}
 	// парсим дату в формате YYYYMMDD
-	date, err := time.Parse("20060102", dstart)
+	date, err := time.Parse(db.DateFormat, dstart)
 	if err != nil {
 		return "", fmt.Errorf("некорректная дата начала: %s", dstart)
 	}
@@ -239,7 +241,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	}
 
 	// форматируем дату в формате YYYYMMDD
-	return date.Format("20060102"), nil
+	return date.Format(db.DateFormat), nil
 }
 
 func nextDateHandler(w http.ResponseWriter, r *http.Request) {
@@ -259,7 +261,7 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 		now = time.Now()
 	} else {
 		// парсим дату в формате YYYYMMDD
-		now, err = time.Parse("20060102", nowStr)
+		now, err = time.Parse(db.DateFormat, nowStr)
 		// возвращаем ошибку если не удалось парсить дату
 		if err != nil {
 			// возвращаем ошибку в формате JSON

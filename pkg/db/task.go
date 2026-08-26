@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+// формат даты в базе данных
+const DateFormat = "20060102"
+
 // Задача из таблицы scheduler
 
 type Task struct {
@@ -55,7 +58,7 @@ func Tasks(limit int, search string) ([]*Task, error) {
 		if parseErr == nil {
 			// ищем задачи на конкретную дату
 			query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE date = ? ORDER BY date LIMIT ?`
-			rows, err = db.Query(query, t.Format("20060102"), limit)
+			rows, err = db.Query(query, t.Format(DateFormat), limit)
 		} else {
 			// поиск по заголовку и комментарию
 			query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE title LIKE ? OR comment LIKE ? ORDER BY date LIMIT ?`

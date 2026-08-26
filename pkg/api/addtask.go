@@ -32,10 +32,10 @@ func checkDate(task *db.Task) error {
 
 	// если поле date не указано, берём сегодняшнее число в формате YYYYMMDD
 	if task.Date == "" {
-		task.Date = now.Format("20060102")
+		task.Date = now.Format(db.DateFormat)
 	}
 	// парсим дату в формате YYYYMMDD
-	t, err := time.Parse("20060102", task.Date)
+	t, err := time.Parse(db.DateFormat, task.Date)
 	if err != nil {
 		return fmt.Errorf("некорректная дата: %s", task.Date)
 	}
@@ -54,7 +54,7 @@ func checkDate(task *db.Task) error {
 	if afterNow(now, t) {
 		if len(task.Repeat) == 0 {
 			// если правила повторения нет, то берём сегодняшнее число
-			task.Date = now.Format("20060102")
+			task.Date = now.Format(db.DateFormat)
 		} else {
 			// в противном случае, берём вычисленную ранее следующую дату
 			task.Date = next
